@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 编译并安装 jsoncpp 到 teamtalk/.sdk/jsoncpp/ 目录（供其他进程 / CMake find_package / pkg-config 使用）。
-默认仅编译静态库（libjsoncpp.a），不使用动态库。
+默认仅编译静态库（libjsoncpp.a），不使用动态库，固定使用 C++17。
 使用 CMake 外部构建：源码在 jsoncpp/，产物在 build/jsoncpp/。
 配置阶段在构建目录内执行「cmake <源码绝对路径>」（兼容 CMake 3.10+，不依赖 -S/-B）。
 
@@ -132,6 +132,8 @@ class JsoncppBuilder:
             "cmake",
             f"-DCMAKE_INSTALL_PREFIX={self.install_dir}",
             "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CXX_STANDARD=17",
+            "-DCMAKE_CXX_STANDARD_REQUIRED=ON",
             "-DJSONCPP_WITH_TESTS=OFF",
             "-DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF",
             "-DJSONCPP_WITH_EXAMPLE=OFF",

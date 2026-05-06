@@ -2,7 +2,7 @@
 """
 编译并安装 protobuf 到 teamtalk/.sdk/protobuf/ 目录
 支持 Windows(MinGW/MSYS2), Linux, macOS
-统一使用 g++ 编译器和 make 构建系统
+统一使用 g++ 编译器和 make 构建系统（固定 C++17）
 
 使用方法:
     python3 build_protobuf.py build     # 配置并编译（不安装）
@@ -43,15 +43,19 @@ class ProtobufBuilder:
         # 检测操作系统
         self.platform_name = platform.system()
         self.is_windows = self.platform_name == 'Windows'
+        self.cxx_flags = "-std=c++17 -fPIC"
     
-    def run_command(self, cmd, shell=False, description=None):
+    def run_command(self, cmd, shell=False, description=None, env=None):
         """执行命令并处理错误"""
         if description:
             print(f"\n{description}")
         
         print(f"执行命令: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
         
-        result = subprocess.run(cmd, shell=shell)
+        merged_env = os.environ.copy()
+        if env:
+            merged_env.update(env)
+        result = subprocess.run(cmd, shell=shell, env=merged_env)
         
         if result.returncode != 0:
             print(f"错误: 命令执行失败 (退出码: {result.returncode})")
@@ -110,6 +114,7 @@ class ProtobufBuilder:
         print(f"源码目录: {self.protobuf_source_dir}")
         print(f"构建目录: {self.build_dir}")
         print(f"安装目录: {self.install_dir}")
+        print(f"C++ 编译参数: {self.cxx_flags}")
         
         # 检查源码目录
         if not self.protobuf_source_dir.exists():
@@ -192,7 +197,13 @@ class ProtobufBuilder:
             str(configure_script),
             f'--prefix={self.install_dir}'
         ]
-        self.run_command(configure_cmd, description="运行 configure")
+        self.run_command(
+            configure_cmd,
+            description="运行 configure（C++17）",
+            env={
+                "CXXFLAGS": self.cxx_flags,
+            },
+        )
         
         print("\n✓ 配置完成!")
     
